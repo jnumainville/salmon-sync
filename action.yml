@@ -17,8 +17,10 @@ inputs:
 
 runs:
   using: "composite"
+  env:
+      DOCS_GOOGLE_CLOUD_CREDENTIALS: ${{ secrets.DOCS_GOOGLE_CLOUD_CREDENTIALS }}
   # this action only runs if the input credentials match the secret
-  if: ${{ secrets.DOCS_GOOGLE_CLOUD_CREDENTIALS == inputs.credentials }}
+  if: ${{ $DOCS_GOOGLE_CLOUD_CREDENTIALS == inputs.credentials }}
   steps:
     - name: Setup rclone
       shell: bash
