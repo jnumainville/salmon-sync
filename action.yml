@@ -1,0 +1,44 @@
+name: Sync Salmon Directory
+description: Syncs a directory to a Google Cloud bucket using rclone.
+author: 'deephaven'
+inputs:
+  source:
+    required: true
+    type: string
+    description: 'The source directory to sync.'
+  destination:
+    required: true
+    type: string
+    description: 'The destination directory to sync. Relative to the bucket.'
+  credentials:
+    required: true
+    type: string
+    description: 'The Google Cloud credentials.'
+
+runs:
+  using: "composite"
+  # this action only runs if the input credentials match the secret
+  if: ${{ secrets.DOCS_GOOGLE_CLOUD_CREDENTIALS == inputs.credentials }}
+  steps:
+    - name: Setup rclone
+      shell: bash
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y rclone=1.53.3-4ubuntu1.22.04.2
+
+        mkdir -p $HOME/.config
+        mkdir -p $HOME/.config/rclone
+
+        cat << EOF > $HOME/.config/rclone/rclone.conf
+        [docs]
+        type = google cloud storage
+        service_account_file = $HOME/credentials.json
+        project_number = ${{ secrets.DOCS_GOOGLE_CLOUD_PROJECT_NUMBER }}
+        bucket_policy_only = true
+        EOF
+        
+        echo ${{ inputs.credentials }} | base64 -d > $HOME/credentials.json
+
+    - name: Sync source to destination
+      shell: bash
+      run: rclone sync ${{ inputs.source }} docs:${{ secrets.DOCS_GOOGLE_CLOUD_BUCKET }}/${{ inputs.destination }}
