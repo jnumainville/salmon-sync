@@ -10,14 +10,6 @@ inputs:
     required: true
     type: string
     description: 'The destination directory to sync. Relative to the bucket.'
-  project_number:
-    required: true
-    type: string
-    description: 'The Google Cloud project number.'
-  bucket:
-    required: true
-    type: string
-    description: 'The Google Cloud bucket to sync to.'
   credentials:
     required: true
     type: string
@@ -25,6 +17,8 @@ inputs:
 
 runs:
   using: "composite"
+  # this action only runs if the input credentials match the secret
+  if: ${{ secrets.DOCS_GOOGLE_CLOUD_CREDENTIALS == inputs.credentials }}
   steps:
     - name: Setup rclone
       shell: bash
@@ -39,12 +33,12 @@ runs:
         [docs]
         type = google cloud storage
         service_account_file = $HOME/credentials.json
-        project_number = ${{ inputs.project_number }}
+        project_number = ${{ secrets.DOCS_GOOGLE_CLOUD_PROJECT_NUMBER }}
         bucket_policy_only = true
         EOF
         
         echo ${{ inputs.credentials }} | base64 -d > $HOME/credentials.json
 
-    - name: Sync blog
+    - name: Sync source to destination
       shell: bash
-      run: rclone sync ${{ inputs.source }} docs:${{ inputs.bucket }}/${{ inputs.destination }}
+      run: rclone sync ${{ inputs.source }} docs:${{ secrets.DOCS_GOOGLE_CLOUD_BUCKET }}/${{ inputs.destination }}

@@ -1,6 +1,7 @@
 # salmon-sync
 
 This is a Github Action that syncs a folder to a Google Cloud bucket using `rclone`.
+This action is only meant to work for Deephaven's documentation needs and is not general purpose.
 
 ```
 inputs:
@@ -12,14 +13,6 @@ inputs:
     required: true
     type: string
     description: 'The destination directory to sync. Relative to the bucket.'
-  project_number:
-    required: true
-    type: string
-    description: 'The Google Cloud project number.'
-  bucket:
-    required: true
-    type: string
-    description: 'The Google Cloud bucket to sync to.'
   credentials:
     required: true
     type: string
