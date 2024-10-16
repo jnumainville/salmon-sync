@@ -17,12 +17,9 @@ inputs:
 
 runs:
   using: "composite"
-  env:
-      DOCS_GOOGLE_CLOUD_CREDENTIALS: ${{ secrets.DOCS_GOOGLE_CLOUD_CREDENTIALS }}
-  # this action only runs if the input credentials match the secret
-  if: ${{ $DOCS_GOOGLE_CLOUD_CREDENTIALS == inputs.credentials }}
   steps:
     - name: Setup rclone
+      if: ${{ secrets.DOCS_GOOGLE_CLOUD_CREDENTIALS == inputs.credentials }}
       shell: bash
       run: |
         sudo apt-get update
@@ -42,5 +39,6 @@ runs:
         echo ${{ inputs.credentials }} | base64 -d > $HOME/credentials.json
 
     - name: Sync source to destination
+      needs: Setup rclone
       shell: bash
       run: rclone sync ${{ inputs.source }} docs:${{ secrets.DOCS_GOOGLE_CLOUD_BUCKET }}/${{ inputs.destination }}
