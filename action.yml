@@ -17,9 +17,14 @@ inputs:
 
 runs:
   using: "composite"
+  env:
+    DOCS_GOOGLE_CLOUD_CREDENTIALS: ${{ secrets.DOCS_GOOGLE_CLOUD_CREDENTIALS }}
+    DOCS_GOOGLE_CLOUD_PROJECT_NUMBER: ${{ secrets.DOCS_GOOGLE_CLOUD_PROJECT_NUMBER }}
+    DOCS_GOOGLE_CLOUD_BUCKET: ${{ secrets.DOCS_GOOGLE_CLOUD_BUCKET }}
   steps:
     - name: Setup rclone
-      if: ${{ secrets.DOCS_GOOGLE_CLOUD_CREDENTIALS == inputs.credentials }}
+      id: setup-rclone
+      if: ${{ $DOCS_GOOGLE_CLOUD_CREDENTIALS == inputs.credentials }}
       shell: bash
       run: |
         sudo apt-get update
@@ -32,13 +37,13 @@ runs:
         [docs]
         type = google cloud storage
         service_account_file = $HOME/credentials.json
-        project_number = ${{ secrets.DOCS_GOOGLE_CLOUD_PROJECT_NUMBER }}
+        project_number = $DOCS_GOOGLE_CLOUD_PROJECT_NUMBER
         bucket_policy_only = true
         EOF
         
         echo ${{ inputs.credentials }} | base64 -d > $HOME/credentials.json
 
     - name: Sync source to destination
-      needs: Setup rclone
+      needs: setup-rclone
       shell: bash
-      run: rclone sync ${{ inputs.source }} docs:${{ secrets.DOCS_GOOGLE_CLOUD_BUCKET }}/${{ inputs.destination }}
+      run: rclone sync ${{ inputs.source }} docs:$DOCS_GOOGLE_CLOUD_BUCKET/${{ inputs.destination }}
