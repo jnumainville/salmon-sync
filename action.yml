@@ -10,22 +10,23 @@ inputs:
     required: true
     type: string
     description: 'The destination directory to sync. Relative to the bucket.'
+  project_number:
+    required: true
+    type: string
+    description: 'The Google Cloud project number.'
+  bucket:
+    required: true
+    type: string
+    description: 'The Google Cloud bucket to sync to.'
   credentials:
     required: true
     type: string
     description: 'The Google Cloud credentials.'
 
-env:
-  DOCS_GOOGLE_CLOUD_CREDENTIALS: ${{ secrets.DOCS_GOOGLE_CLOUD_CREDENTIALS }}
-  DOCS_GOOGLE_CLOUD_PROJECT_NUMBER: ${{ secrets.DOCS_GOOGLE_CLOUD_PROJECT_NUMBER }}
-  DOCS_GOOGLE_CLOUD_BUCKET: ${{ secrets.DOCS_GOOGLE_CLOUD_BUCKET }}
-
 runs:
   using: "composite"
   steps:
     - name: Setup rclone
-      id: setup-rclone
-      if: ${{ $DOCS_GOOGLE_CLOUD_CREDENTIALS == inputs.credentials }}
       shell: bash
       run: |
         sudo apt-get update
@@ -38,13 +39,12 @@ runs:
         [docs]
         type = google cloud storage
         service_account_file = $HOME/credentials.json
-        project_number = $DOCS_GOOGLE_CLOUD_PROJECT_NUMBER
+        project_number = ${{ inputs.project_number }}
         bucket_policy_only = true
         EOF
         
         echo ${{ inputs.credentials }} | base64 -d > $HOME/credentials.json
 
     - name: Sync source to destination
-      needs: setup-rclone
       shell: bash
-      run: rclone sync ${{ inputs.source }} docs:$DOCS_GOOGLE_CLOUD_BUCKET/${{ inputs.destination }}
+      run: rclone sync ${{ inputs.source }} docs:${{ inputs.bucket }}/${{ inputs.destination }}
