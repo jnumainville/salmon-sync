@@ -42,4 +42,4 @@ runs:
         RCLONE_GCS_SERVICE_ACCOUNT_FILE: $HOME/credentials.json
         RCLONE_GCS_PROJECT_NUMBER: ${{ inputs.project_number }}
         RCLONE_GCS_BUCKET_POLICY_ONLY: "true"
-      run: rclone sync ${{ inputs.source }} docs:${{ vars.DOCS_GOOGLE_CLOUD_BUCKET }}/${{ inputs.destination }}
+      run: rclone sync ${{ inputs.source }} gcs:${{ vars.DOCS_GOOGLE_CLOUD_BUCKET }}/${{ inputs.destination }}
