@@ -14,10 +14,6 @@ inputs:
     required: true
     type: string
     description: 'The Google Cloud project number.'
-  bucket:
-    required: true
-    type: string
-    description: 'The Google Cloud bucket to sync to.'
   credentials:
     required: true
     type: string
@@ -27,24 +23,23 @@ runs:
   using: "composite"
   steps:
     - name: Setup rclone
+      uses: AnimMouse/setup-rclone@v1
+      with:
+        rclone-version: v1.68.1
+
+    - name: Decode credentials
       shell: bash
       run: |
-        sudo apt-get update
-        sudo apt-get install -y rclone=1.53.3-4ubuntu1.22.04.2
-
-        mkdir -p $HOME/.config
-        mkdir -p $HOME/.config/rclone
-
-        cat << EOF > $HOME/.config/rclone/rclone.conf
-        [docs]
-        type = google cloud storage
-        service_account_file = $HOME/credentials.json
-        project_number = ${{ inputs.project_number }}
-        bucket_policy_only = true
-        EOF
-        
-        echo ${{ inputs.credentials }} | base64 -d > $HOME/credentials.json
+        echo $RCLONE_GCS_SERVICE_ACCOUNT_CREDENTIALS_ENCODED | base64 -d > $HOME/credentials.json
+      env:
+        RCLONE_GCS_SERVICE_ACCOUNT_CREDENTIALS_ENCODED: ${{ inputs.credentials }}
+      
 
     - name: Sync source to destination
       shell: bash
-      run: rclone sync ${{ inputs.source }} docs:${{ inputs.bucket }}/${{ inputs.destination }}
+      env:
+        RCLONE_CONFIG_GCS_TYPE: "google cloud storage"
+        RCLONE_GCS_SERVICE_ACCOUNT_FILE: $HOME/credentials.json
+        RCLONE_GCS_PROJECT_NUMBER: ${{ inputs.project_number }}
+        RCLONE_GCS_BUCKET_POLICY_ONLY: "true"
+      run: rclone sync ${{ inputs.source }} docs:${{ vars.DOCS_GOOGLE_CLOUD_BUCKET }}/${{ inputs.destination }}
