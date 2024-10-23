@@ -34,7 +34,7 @@ runs:
     - name: Decode credentials
       shell: bash
       run: |
-        echo $RCLONE_GCS_SERVICE_ACCOUNT_CREDENTIALS_ENCODED | base64 -d > $HOME/credentials.json
+        echo $RCLONE_GCS_SERVICE_ACCOUNT_CREDENTIALS_ENCODED | base64 --decode > $HOME/credentials.json
       env:
         RCLONE_GCS_SERVICE_ACCOUNT_CREDENTIALS_ENCODED: ${{ inputs.credentials }}
       
